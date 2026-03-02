@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+title: "On Fairness of Task Arithmetic: The Role of Task Vectors"
+message: "If you use this code or the associated paper, please cite it using the metadata from this file."
+type: software
+authors:
+  - family-names: "Gomezjurado Gonzalez"
+    given-names: "Laura"
+    affiliation: "Stanford University"
+  - family-names: "Naganuma"
+    given-names: "Hiroki"
+    affiliation: "Mila / Université de Montréal"
+  - family-names: "Yoshida"
+    given-names: "Kotaro"
+    affiliation: "Institute of Science Tokyo"
+  - family-names: "Naraki"
+    given-names: "Yuji"
+    affiliation: "Independent Researcher"
+  - family-names: "Horie"
+    given-names: "Takafumi"
+    affiliation: "Kyoto University"
+  - family-names: "Shimizu"
+    given-names: "Ryotaro"
+    affiliation: "ZOZO Research"
+repository-code: "https://github.com/LauraGomezjurado/fairness_task_vector_deploy"
+preferred-citation:
+  type: article
+  title: "On Fairness of Task Arithmetic: The Role of Task Vectors"
+  authors:
+    - family-names: "Gomezjurado Gonzalez"
+      given-names: "Laura"
+    - family-names: "Naganuma"
+      given-names: "Hiroki"
+    - family-names: "Yoshida"
+      given-names: "Kotaro"
+    - family-names: "Naraki"
+      given-names: "Yuji"
+    - family-names: "Horie"
+      given-names: "Takafumi"
+    - family-names: "Shimizu"
+      given-names: "Ryotaro"
+  journal: "International Conference on Learning Representations (ICLR)"
+  year: 2026
+  url: "https://arxiv.org/abs/2505.24262"
+  identifiers:
+    - type: doi
+      value: "10.48550/arXiv.2505.24262"
+    - type: url
+      value: "https://iclr.cc/virtual/2026/poster/10010981"
+      description: "ICLR 2026 poster"
