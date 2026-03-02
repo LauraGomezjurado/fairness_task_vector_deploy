@@ -105,18 +105,14 @@ def set_seed(seed: int = 42):
 
 def setup_model_and_tokenizer(model_name: str, num_labels: int = 2, use_4bit: bool = False):
     """Load model and tokenizer with optional quantization."""
-    # tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
         trust_remote_code=True          # ⭐ NEW for Qwen
     )
 
     if tokenizer.pad_token is None:
-        # tokenizer.pad_token = tokenizer.eos_token
-        # Qwen ships only an EOS token – promote it to PAD as well
         tokenizer.pad_token = tokenizer.eos_token
-    
-    # if use_4bit and BitsAndBytesConfig is not None:
+
     if use_4bit and BitsAndBytesConfig is not None:
         bnb_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -134,7 +130,6 @@ def setup_model_and_tokenizer(model_name: str, num_labels: int = 2, use_4bit: bo
                 trust_remote_code=True,
         )
 
-        # NEW: make sure model knows the padding id
         if model.config.pad_token_id is None:
             model.config.pad_token_id = tokenizer.pad_token_id
 
@@ -428,9 +423,9 @@ class TrainingManager:
             logging_steps=10,
             save_total_limit=2,
             remove_unused_columns=False,
-            dataloader_drop_last=False,   # Add this line
+            dataloader_drop_last=False,
         )
-        
+
         trainer = Trainer(
             model=model,
             args=training_args,
@@ -439,23 +434,19 @@ class TrainingManager:
             tokenizer=tokenizer,
             data_collator=CustomDataCollator(tokenizer)
         )
-        
+
         trainer.train()
         model.save_pretrained(self.save_dir)
         print(f"✅ SFT training completed. Model saved to {self.save_dir}")
-    
+
     def run_lora(self, model, tokenizer, train_ds, eval_ds) -> None:
         """Run LoRA fine-tuning."""
         print("🚀 Starting LoRA training...")
 
         is_qwen = "qwen" in self.config.model_name.lower()
 
-        # --- NEW --------------------------------------------------------
         from peft import TaskType
-        # Use SEQ_CLS for sequence‑classification checkpoints,
-        # even if the underlying architecture is "qwen".
         task_type = TaskType.SEQ_CLS
-        # ---------------------------------------------------------------
 
         lora_config = LoraConfig(
             task_type      = task_type,
@@ -483,9 +474,9 @@ class TrainingManager:
             logging_steps=100,
             save_total_limit=2,
             remove_unused_columns=False,
-            dataloader_drop_last=False,   # Add this line
+            dataloader_drop_last=False,
         )
-        
+
         trainer = Trainer(
             model=model,
             args=training_args,
@@ -494,7 +485,7 @@ class TrainingManager:
             tokenizer=tokenizer,
             data_collator=CustomDataCollator(tokenizer)
         )
-        
+
         trainer.train()
         model.save_pretrained(self.save_dir)
         print(f"✅ LoRA training completed. Model saved to {self.save_dir}")
@@ -760,12 +751,10 @@ class FairnessExperiment:
     def __init__(self):
         self.results = {}
     
-    def run_experiment(self, 
+    def run_experiment(self,
                       method: str = "sft",
-                      dataset: str = "civil_comments", 
+                      dataset: str = "civil_comments",
                       model_name: str = "distilbert-base-uncased",
-                    # model_name: str = "distilbert-base-uncased",
-
                       sample_frac: float = 0.1,
                       epochs: int = 2,
                       output_dir: str = "./fairness_results",
@@ -805,8 +794,7 @@ class FairnessExperiment:
         print(f"📊 Dataset loaded:")
         print(f"   Train samples: {len(dataset_dict['train'])}")
         print(f"   Test samples: {len(dataset_dict['test'])}")
-        # print(f"   Groups in train: {set(dataset_dict['train']['group'])}")
-        
+
         # Setup model and tokenizer
         model, tokenizer = setup_model_and_tokenizer(
             config.model_name, 
@@ -879,17 +867,11 @@ class FairnessExperiment:
                 wandb.log(result_dict)
                 self.print_results(result)
 
-                # --------------------------------------------------------------------------
-                # ⬇⬇⬇  INSERT *right after* the `for alpha in [...]` loop for task_vector  ⬇⬇⬇
-                # --------------------------------------------------------------------------
-
-                # ---- 1. pick the alpha with best fairness scores -------------------------
                 best_dpd_alpha = min(fairness_metrics,
                                     key=lambda a: fairness_metrics[a].demographic_parity)
                 best_eod_alpha = min(fairness_metrics,
                                     key=lambda a: fairness_metrics[a].equalized_odds)
 
-                # if they differ, choose the one with the better harmonic mean of (DPD,EOD)
                 if best_dpd_alpha == best_eod_alpha:
                     selected_alpha = best_dpd_alpha
                 else:
@@ -900,9 +882,8 @@ class FairnessExperiment:
 
                 selected = fairness_metrics[selected_alpha]
 
-                # ---- 2. make this the single comparable entry ----------------------------
-                self.results[exp_key] = selected        # so compare_methods uses it
-                wandb.log({                             # optional: one tidy row in W&B
+                self.results[exp_key] = selected
+                wandb.log({
                     "selected_alpha":         selected_alpha,
                     "sel_overall_accuracy":   selected.accuracy,
                     "sel_demographic_parity": selected.demographic_parity,
@@ -914,7 +895,6 @@ class FairnessExperiment:
                     f"DPD = {selected.demographic_parity:.3f}  |  "
                     f"EOD = {selected.equalized_odds:.3f}")
                 self.print_results(selected)
-                # --------------------------------------------------------------------------
 
         else:
             results_dict = {
@@ -1045,7 +1025,3 @@ if __name__ == "__main__":
         seed         = args.seed,
         use_4bit     = args.use_4bit
     )
-
-
-    # quick_experiment(args.method, args.sample_frac, args.epochs, args.output_dir, args.group_type, args.seed)
-
